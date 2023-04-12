@@ -66,12 +66,15 @@ app.post("/api/persons", (req, res) => {
   if (!body || !body.name || !body.number) {
     return res.status(400).json({ error: "name and number must be filled in" });
   }
+  if (persons.find((person) => person.name === body.name)) {
+    return res.status(400).json({ error: "name must be unique" });
+  }
   const person = {
     name: body.name,
     number: body.number,
     id: generateId(),
   };
-  persons.concat(person);
+  persons = persons.concat(person);
   res.json(person);
 });
 
