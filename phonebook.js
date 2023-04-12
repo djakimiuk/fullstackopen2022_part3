@@ -25,6 +25,15 @@ let persons = [
   },
 ];
 
+const generateId = () => {
+  const id = Math.round(Math.random() * (10000000 - 1) + 1);
+  if (persons.find((person) => person.id === id)) {
+    return id + Date.now();
+  } else {
+    return id;
+  }
+};
+
 app.get("/api/persons", (req, res) => {
   res.json(persons);
 });
@@ -50,6 +59,20 @@ app.delete("/api/persons/:id", (req, res) => {
   const id = +req.params.id;
   persons = persons.filter((person) => person.id !== id);
   res.status(204).end();
+});
+
+app.post("/api/persons", (req, res) => {
+  const body = req.body;
+  if (!body || !body.name || !body.number) {
+    return res.status(400).json({ error: "name and number must be filled in" });
+  }
+  const person = {
+    name: body.name,
+    number: body.number,
+    id: generateId(),
+  };
+  persons.concat(person);
+  res.json(person);
 });
 
 const PORT = 3001;
