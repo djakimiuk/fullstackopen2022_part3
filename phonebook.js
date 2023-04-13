@@ -1,6 +1,15 @@
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
 app.use(express.json());
+
+morgan.token("body", (req, res) => JSON.stringify(req.body));
+
+app.use(
+  morgan(
+    ":method :url :status :res[content-length] - :response-time ms :body"
+  )
+);
 
 let persons = [
   {
@@ -41,9 +50,11 @@ app.get("/api/persons", (req, res) => {
 app.get("/api/persons/:id", (req, res) => {
   const id = +req.params.id;
   const person = persons.find((person) => person.id === id);
-  console.log(person);
   if (person) {
     res.json(person);
+    morgan.token("type", function (req, res) {
+      return req.headers["content-type"];
+    });
   } else {
     res.status(404).send(`not found`);
   }
