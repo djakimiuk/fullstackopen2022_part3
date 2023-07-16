@@ -8,6 +8,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("build"));
 
+const errorMiddleware = (error, req, res, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return res.status(400).send({ error: "malformatted id" });
+  }
+};
+
 morgan.token("body", (req, res) => JSON.stringify(req.body));
 
 app.use(
@@ -58,6 +66,8 @@ app.post("/api/persons", (req, res) => {
     res.json(savedPerson);
   });
 });
+
+app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 3001;
 
