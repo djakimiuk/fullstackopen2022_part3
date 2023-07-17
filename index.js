@@ -67,6 +67,19 @@ app.post("/api/persons", (req, res) => {
   });
 });
 
+app.put("/api/persons/:id", (req, res) => {
+  const body = req.body;
+  const updatedPerson = {
+    name: body.name,
+    number: body.number,
+  };
+  Contact.findByIdAndUpdate(req.params.id, updatedPerson, { new: true }).then(
+    (contact) => {
+      res.json(contact);
+    }
+  );
+});
+
 app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 3001;
