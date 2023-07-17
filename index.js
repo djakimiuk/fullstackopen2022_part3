@@ -13,7 +13,11 @@ const errorMiddleware = (error, req, res, next) => {
 
   if (error.name === "CastError") {
     return res.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return res.status(400).json({ error: error.message });
   }
+
+  next(error);
 };
 
 morgan.token("body", (req, res) => JSON.stringify(req.body));
@@ -51,7 +55,7 @@ app.delete("/api/persons/:id", (req, res) => {
   });
 });
 
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
   if (!body || !body.name || !body.number) {
     return res.status(400).json({ error: "name and number must be filled in" });
@@ -62,22 +66,29 @@ app.post("/api/persons", (req, res) => {
     number: body.number,
   });
 
-  person.save().then((savedPerson) => {
-    res.json(savedPerson);
-  });
+  person
+    .save()
+    .then((savedPerson) => {
+      res.json(savedPerson);
+    })
+    .catch((error) => next(error));
 });
 
-app.put("/api/persons/:id", (req, res) => {
+app.put("/api/persons/:id", (req, res, next) => {
   const body = req.body;
   const updatedPerson = {
     name: body.name,
     number: body.number,
   };
-  Contact.findByIdAndUpdate(req.params.id, updatedPerson, { new: true }).then(
-    (contact) => {
+  Contact.findByIdAndUpdate(req.params.id, updatedPerson, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  })
+    .then((contact) => {
       res.json(contact);
-    }
-  );
+    })
+    .catch((error) => next(error));
 });
 
 app.use(errorMiddleware);
